@@ -44,12 +44,24 @@ jobs:
         work_in_root_file_dir: true
         latexmk_use_lualatex: true
         extra_fonts: fonts/*.ttf
+        post_compile: |
+          cd template
+          make4ht --utf8 --lua main.tex "html5,charset=utf-8"
 
     - run: |
         mv template/main.pdf template/template.pdf
+        mv template/main.html template/template.html
 
     - name: upload pdf
       uses: actions/upload-artifact@v4
       with:
         name: pdf
         path: template/template.pdf
+
+    - name: upload html
+      uses: actions/upload-artifact@v4
+      with:
+        name: html
+        path: |
+          template/template.html
+          template/main.css
