@@ -1,4 +1,4 @@
-name: Build PDF and HTML
+name: Build PDF/HTML from LaTeX
 
 on:
   push:
@@ -6,10 +6,50 @@ on:
   workflow_dispatch:
   
 jobs:
-  build-pdf:
+  prepare-fonts:
     runs-on: ubuntu-latest
     steps:
-      
-  build-html:
+      - run: |
+          mkdir -p fonts
+  
+          wget https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-myeongjo.zip
+          unzip nanum-myeongjo.zip
+          mv *.ttf fonts
+  
+          wget https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip
+          unzip Pretendard-1.3.9.zip
+          mv public/static/alternative/*.ttf fonts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fonts
+          path: fonts
+
+
+  compile-template:
     runs-on: ubuntu-latest
+    needs: prepare-fonts
     steps:
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
+      with:
+        name: fonts
+        path: fonts
+
+    - name: compile LaTeX
+      uses: xu-cheng/latex-action@v3
+      with:
+        root_file: |
+          template/main.tex
+        work_in_root_file_dir: true
+        latexmk_use_lualatex: true
+        extra_fonts: fonts/*.ttf
+
+    - run: |
+        mv template/main.pdf template/template.pdf
+
+    - name: upload pdf
+      uses: actions/upload-artifact@v4
+      with:
+        name: pdf
+        path: template/template.pdf
