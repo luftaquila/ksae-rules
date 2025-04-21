@@ -1,0 +1,15 @@
+name: Build PDF and HTML
+
+on:
+  push:
+  workflow_call:
+  workflow_dispatch:
+  
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      
+  build-html:
+    runs-on: ubuntu-latest
+    steps:
