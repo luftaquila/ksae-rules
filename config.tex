@@ -1,5 +1,14 @@
-% 폰트
+% packages
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{etoolbox}
+\usepackage{fancyhdr}
 \usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{indentfirst}
+
+% fonts
 \setmainfont{NanumMyeongjo}[
   UprightFont     = {NanumMyeongjo},
   BoldFont        = {NanumMyeongjo Bold},
@@ -22,13 +31,11 @@
              minus 0.2\fontdimen4\font
 \makeatother
 
-% 여백
+% margins
 \usepackage[margin=2cm,bottom=3.5cm]{geometry}
 \typeout{>>> \string\footskip\ is \the\footskip}
-\usepackage{xcolor}
 
-% 테두리
-\usepackage{tikz}
+% borders
 \usetikzlibrary{calc}
 \AddToHook{shipout/background}{%
   \begin{tikzpicture}[remember picture,overlay]
@@ -38,8 +45,7 @@
   \end{tikzpicture}%
 }
 
-% 페이지 그래픽
-\usepackage{fancyhdr}
+% graphics
 \pagestyle{fancy}
 \fancyhf{}
 
@@ -91,8 +97,7 @@
 }
 \thispagestyle{firstpage}
 
-% 장
-\usepackage{etoolbox}
+% chapters
 \makeatletter
 \patchcmd{\chapter}
   {\if@openright\cleardoublepage\else\clearpage\fi}
@@ -102,7 +107,6 @@
   {}{}{}
 \makeatother
 
-\usepackage{titlesec}
 \renewcommand{\chaptermark}[1]{}
 \titleformat{\chapter}[hang]
   {\pretendardb\fontsize{12}{16}\selectfont}
@@ -112,7 +116,7 @@
 \titlespacing*{\chapter}{0pt}{3ex}{1ex}
 \pagestyle{plain}
 
-% 조
+% sections
 \counterwithout{section}{chapter}
 \renewcommand\thesection{\arabic{section}}
 \newcommand{\lawformat}[1]{\mbox{제\thesection{}조 (#1)}}
@@ -123,8 +127,7 @@
   {\lawformat}
 \titlespacing*{\section}{0pt}{3ex}{1ex}
 
-% 항
-\usepackage{enumitem}
+% items
 \DeclareRobustCommand*{\Circlenum}{%
   \ifcase\value{enumi}\relax
   \or ①\or ②\or ③\or ④\or ⑤\or ⑥\or ⑦\or ⑧\or ⑨\or ⑩%
@@ -136,13 +139,12 @@
 \renewcommand{\labelenumi}{\normalfont\Circlenum}
 \setlist[enumerate,1]{ref={제\thesection{}조~\arabic*항},labelsep=0.5em,itemsep=0pt,leftmargin=3em}
 
-% 본문
-\usepackage{indentfirst}
+% texts
 \sloppy
 \setlength{\leftskip}{1.5em}
 \setlength{\parindent}{0pt}
 
-% 하이퍼링크 / PDF 목차
+% hyperlinks
 \usepackage[unicode,
             pdfencoding=auto,
             bookmarks=true,
@@ -151,6 +153,7 @@
             bookmarkstype=toc]{hyperref}
 \newcommand{\hypref}[1]{\hyperref[#1]{\ref*{#1}}}
 
+% bookmarks
 \usepackage{bookmark}
 \makeatletter
 \pdfstringdefDisableCommands{
