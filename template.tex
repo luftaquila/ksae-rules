@@ -1,60 +1,204 @@
-% !TEX program = xelatex
-\documentclass[a4paper,10pt]{report}
-\input{config.tex}
+% packages
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{kotex}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{etoolbox}
+\usepackage{fancyhdr}
+\usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{indentfirst}
+\usepackage[unicode,
+            pdfencoding=auto,
+            bookmarks=true,
+            bookmarksnumbered=true,
+            bookmarksopen=true,
+            bookmarkstype=toc]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{bookmark}
 
-\begin{document}
+% margins
+\usepackage[margin=2cm,bottom=3.5cm]{geometry}
 
-\begin{center}
-  {\fontsize{22}{25}\selectfont\pretendardb 대학생 자작자동차대회}\\[2.5ex]
-  {\fontsize{22}{25}\selectfont\pretendardb Formula Student Korea 차량기술규정}\\[2.5ex]
-  [ 시행 2024.11.21. 이사회 ]
-\end{center}
+% fonts
+\setmainfont{NanumMyeongjo}[
+  UprightFont     = {NanumMyeongjo},
+  BoldFont        = {NanumMyeongjo Bold},
+  ExtraBoldFont   = {NanumMyeongjo ExtraBold},
+  ItalicFont      = {NanumMyeongjo},
+  ItalicFeatures  = {FakeSlant=0.2},
+  LetterSpace=3
+]
 
-\chapter{목적 및 일반사항}
+\linespread{1.3}\selectfont
 
-\section{목적}
-본 규정은 KSAE 대학생 자작자동차대회 대회운영규정(이하 “대회운영규정”이라 한다) 제10조 제4항에 따라 Formula 차량기술에 관한 사항을 규정함을 목적으로 한다.
+\newfontfamily\textb{NanumMyeongjo Bold}
+\newfontfamily\texteb{NanumMyeongjo ExtraBold}
+\newfontfamily\pretendard{Pretendard}
+\newfontfamily\pretendardb{Pretendard Bold}
+\newfontfamily\pretendardeb{Pretendard ExtraBold}
 
-\section{일반사항}
+\makeatletter
+  \spaceskip=1.5\fontdimen2\font
+             plus 0.3\fontdimen3\font
+             minus 0.2\fontdimen4\font
+\makeatother
 
-Formula 차량기술규정의 일반적인 사항들은 대회 운영 규정에 따른다.
+% borders
+\usetikzlibrary{calc}
+\AddToHook{shipout/background}{
+  \begin{tikzpicture}[remember picture,overlay]
+    \draw[line width=0.5pt]
+      ($(current page.north west)+(1cm,-1cm)$) rectangle
+      ($(current page.south east)+(-1cm,1.8cm)$);
+  \end{tikzpicture}
+}
 
-\chapter{Formula 참가 차량의 조건}
+% graphics
+\pagestyle{fancy}
+\fancyhf{}
 
-\section{참가 차량의 정의}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
 
-\begin{enumerate}
-  \item 1인승 차량으로, 4바퀴(앞바퀴2, 뒷바퀴2) 이상을 가진 차량으로 반드시 운전석과 휠이 개방된 포뮬러(Formula) 스타일이어야 한다.
-  \item 외장은 드라이버를 보호하기 위해 차량의 앞(벌크헤드)에서부터 방화벽 또는 메인 롤 후프(Main Roll Hoop)까지 운전석을 제외하고는 개방된 공간이 없어야 한다.
-  \item 참가 차량은 내연기관 또는 모터를 사용한 차량으로 규정에 맞게 대학생들이 설계하고 제작한 차량이어야 한다.
-  \item 참가 차량은 대학생들이 직접 설계하고 제작한 710cc 이하의 내연기관이나 600VDC 이하의 전기 동력원을 사용하는 차량이어야 한다.
-  \item 동일한 프레임을 사용한 차량은 2년까지 대회를 참가할 수 있다. 
-\end{enumerate}
+\newlength{\borderoffset}
+\setlength{\borderoffset}{1cm}
+\newlength{\margin}
+\setlength{\margin}{2cm}
 
-\section{참가 차량의 휠베이스 및 최저 지상고}
+\makeatletter
+\newcommand{\setupfancy}{
+  \fancyhfoffset[L]{\dimexpr\margin-\borderoffset\relax}
+  \fancyhfoffset[R]{\dimexpr\margin-\borderoffset\relax}
+  \lfoot{\pretendardb{자동차공학은 한국의 힘!}}
+  \cfoot{\pretendardb{\thepage}}
+  \rfoot{\pretendardb{사단법인 한국자동차공학회}}
+}
+\makeatother
+\setupfancy
+\fancypagestyle{plain}{\setupfancy}
 
-\begin{enumerate}
-  \item 휠베이스 (Wheel Base)\\
-    휠베이스는 앞, 뒤 타이어의 접촉면의 중심 사이의 거리를 측정하여 최소한 1,500mm 이상이 되어야 한다.
-  \item 최저 지상고 (Ground Clearance)\\
-    타이어 이외의 차량의 일부분이 지면과 접촉이 없어야 하며, 경기 중 노면과의 지속적인 접촉 및 부품의 탈락 등으로 안전상 문제가 발생할 우려가 있다고 판단될 경우 경기 참가를 제한한다.
-\end{enumerate}
+\setlength{\headheight}{45pt}
 
-\section{전륜과 후륜의 트레드(Tread) 비율}
+\makeatletter
+\newcommand{\SidePaddedBox}[5]{
+  \fcolorbox{black}{gray}{
+    \vbox{
+      \vskip #1
+      \hbox{
+        \hskip #2
+        \color{white}\textbf{\small #5}
+        \hskip #3
+      }
+      \vskip #4
+    }
+  }
+}
+\makeatother
 
-전륜 및 후륜 중 좁은 트레드는 넓은 트레드 대비 75\% 이상의 폭을 가져야 한다.
+\fancypagestyle{firstpage}{
+  \fancyheadoffset[L]{\dimexpr\margin-\borderoffset+0.5cm\relax}
+  \fancyfootoffset[L]{\dimexpr\margin-\borderoffset\relax}
+  \lhead{
+    \SidePaddedBox{1pt}{10pt}{40pt}{1pt}{\pretendard\fontsize{10}{12}\selectfont 한국자동차공학회 규정}
+  }
+  \renewcommand{\headrulewidth}{0pt}
+}
+\thispagestyle{firstpage}
 
-\chapter{차체 기본규정}
+% chapters
+\makeatletter
+\patchcmd{\chapter}
+  {\if@openright\cleardoublepage\else\clearpage\fi}
+  {}{}{}
+\patchcmd{\chapter}
+  {\thispagestyle{plain}}
+  {}{}{}
+\makeatother
 
-\section{휠 - Wheel}
+\renewcommand{\chaptermark}[1]{}
+\titleformat{\chapter}[hang]
+  {\pretendardb\fontsize{12}{16}\selectfont}
+  {제\arabic{chapter}장}
+  {0.5em}
+  {}
+\titlespacing*{\chapter}{0pt}{3ex}{1ex}
+\pagestyle{plain}
 
-\begin{enumerate}
-  \item 하나의 고정너트를 사용하는 휠 마운트는 반드시 너트 풀림 방지 장치를 해야 하며, 이중너트(잼너트)는 풀림방지장치로 인정되지 않는다.
-  \item \label{item:bolt_nut_torque} 휠 볼트, 너트는 98Nm 이상의 토크로 체결될 수 있어야 한다.
-  \item 알루미늄 휠 너트는 사용될 수 있으나, 경질 애노다이징 처리되어 있어야 하며 변형이 없어야 한다.
-  \item 상용 휠 볼트, 너트 미사용 시 \hypref{item:bolt_nut_torque}을 만족해야 한다.
-\end{enumerate}
+% sections
+\counterwithout{section}{chapter}
+\renewcommand\thesection{\arabic{section}}
+\newcommand{\lawformat}[1]{\mbox{제\thesection{}조 (#1)}}
+\titleformat{\section}[block]
+  {\textb}
+  {}
+  {0pt}
+  {\lawformat}
+\titlespacing*{\section}{0pt}{3ex}{1ex}
 
-% 이하 생략
+% items
+\DeclareRobustCommand*{\circlenum}{
+  \ifcase\value{enumi}\relax
+  \or ①\or ②\or ③\or ④\or ⑤\or ⑥\or ⑦\or ⑧\or ⑨\or ⑩
+  \else
+    \arabic{enumi}
+  \fi
+}
+\renewcommand{\theenumi}{\circlenum}
+\renewcommand{\labelenumi}{\normalfont\circlenum}
 
-\end{document}
+\DeclareRobustCommand{\koreannum}[1]{
+  \ifcase#1 \or
+    가\or 나\or 다\or 라\or 마\or 바\or 사\or 아\or 자\or 차\or 카\or 타\or 파\or 하
+  \else ?\fi
+}
+
+\setlist[enumerate,1]{ref={제\thesection{}조~\arabic*항},labelsep=0.5em,itemsep=0pt,leftmargin=3em}
+\setlist[enumerate,2]{label=\arabic*.,labelsep=0.5em,leftmargin=2.5em}
+\setlist[enumerate,3]{label={\koreannum{\arabic*}.},labelsep=0.5em,leftmargin=2.5em}
+\setlist[enumerate,4]{label=\alph*.,labelsep=0.5em,leftmargin=2.5em}
+\setlist[itemize,1]{label=\textbullet,leftmargin=2em,itemsep=0.5ex,before=\small}
+
+% texts
+\sloppy
+\setlength{\leftskip}{1.5em}
+\setlength{\parindent}{0pt}
+
+% hyperlinks
+\let\origcref\cref
+\renewcommand{\cref}[1]{\textit{\origcref{#1}}}
+
+\creflabelformat{chapter}{#2제#1장#3}
+\creflabelformat{section}{#2제#1조#3}
+\crefname{chapter}{}{}
+\crefname{section}{}{}
+\crefname{figure}{그림}{그림}
+\crefname{enumi}{}{}
+
+% bookmarks
+\makeatletter
+\pdfstringdefDisableCommands{
+  \def\thechapter{제\arabic{chapter}장}
+  \def\thesection{제\arabic{section}조}
+}
+\makeatother
+
+% figures
+\graphicspath{{assets/}}
+\captionsetup[figure]{
+  name=그림,
+  labelsep=period,
+  figurewithin=none
+}
+\captionsetup[figure]{labelfont=bf, textfont=bf}
+
+\newcommand{\fig}[3]{
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#3\linewidth]{#2/#1.jpg}
+    \caption{#1}\label{fig:#1}
+  \end{figure}
+}
