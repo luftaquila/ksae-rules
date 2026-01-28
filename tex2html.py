@@ -456,6 +456,7 @@ def create_pandoc_template():
   <button id="toc-toggle" aria-label="Toggle TOC">☰</button>
   <button id="theme-toggle" aria-label="Toggle Dark Mode">🌙</button>
   <button id="share-selection">🔗 링크 복사</button>
+  <button id="back-to-position" aria-label="Go back to previous position">↩ 이전 위치</button>
   <main id="content">
 $body$
   </main>
@@ -607,6 +608,71 @@ $body$
         setTimeout(() => {
           shareBtn.style.display = 'none';
         }, 1500);
+      }
+    });
+
+    // Back to Previous Position
+    const backBtn = document.getElementById('back-to-position');
+    let previousScrollPosition = null;
+    let backButtonTimeout = null;
+
+    // Track clicks on internal links
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href^="#"]');
+      if (link) {
+        // Save current scroll position before navigation
+        previousScrollPosition = window.scrollY;
+        
+        // Show back button after navigation
+        setTimeout(() => {
+          showBackButton();
+        }, 100);
+      }
+    });
+
+    function showBackButton() {
+      if (previousScrollPosition !== null) {
+        backBtn.style.display = 'flex';
+        backBtn.classList.add('visible');
+        
+        // Auto-hide after 20 seconds
+        clearTimeout(backButtonTimeout);
+        backButtonTimeout = setTimeout(() => {
+          hideBackButton();
+        }, 20000);
+      }
+    }
+
+    function hideBackButton() {
+      backBtn.classList.remove('visible');
+      setTimeout(() => {
+        if (!backBtn.classList.contains('visible')) {
+          backBtn.style.display = 'none';
+        }
+      }, 300);
+    }
+
+    backBtn.addEventListener('click', () => {
+      if (previousScrollPosition !== null) {
+        window.scrollTo({
+          top: previousScrollPosition,
+          behavior: 'smooth'
+        });
+        previousScrollPosition = null;
+        hideBackButton();
+      }
+    });
+
+    // Hide back button when user scrolls manually near the original position
+    window.addEventListener('scroll', () => {
+      if (previousScrollPosition !== null && backBtn.classList.contains('visible')) {
+        const currentPos = window.scrollY;
+        const diff = Math.abs(currentPos - previousScrollPosition);
+        // If user scrolled back close to original position, hide the button
+        if (diff < 100) {
+          previousScrollPosition = null;
+          hideBackButton();
+        }
       }
     });
 

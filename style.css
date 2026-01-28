@@ -528,12 +528,60 @@ pre {
 }
 
 [data-theme="dark"] #share-selection {
-  background-color: #4a9abe;
-  color: #ffffff;
+  background-color: #404040;
+  color: #e0e0e0;
 }
 
 [data-theme="dark"] #share-selection:hover {
-  background-color: #5aadce;
+  background-color: #505050;
+}
+
+/* 이전 위치로 돌아가기 버튼 */
+#back-to-position {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 300;
+  background-color: var(--primary-color);
+  color: var(--bg-body);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  font-family: 'Noto Sans KR', sans-serif;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.15s ease;
+}
+
+#back-to-position.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#back-to-position:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--shadow-color);
+}
+
+#back-to-position:active {
+  transform: translateY(0);
+}
+
+[data-theme="dark"] #back-to-position {
+  background-color: #404040;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] #back-to-position:hover {
+  background-color: #505050;
 }
 
 /* 하이라이트된 텍스트 */
@@ -613,6 +661,13 @@ pre {
     padding-left: 58px;
   }
 
+  #back-to-position {
+    bottom: 16px;
+    right: 16px;
+    padding: 10px 14px;
+    font-size: 0.85em;
+  }
+
   h1 {
     font-size: 1.5em;
     margin-top: 1.5em;
@@ -681,7 +736,7 @@ pre {
 
 /* 인쇄 스타일 */
 @media print {
-  #toc, #toc-toggle, #theme-toggle {
+  #toc, #toc-toggle, #theme-toggle, #back-to-position, #share-selection {
     display: none !important;
   }
 
