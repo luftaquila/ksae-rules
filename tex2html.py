@@ -2,7 +2,7 @@
 """
 LaTeX to HTML converter with proper ref and cref resolution.
 Parses .aux file to resolve references, then converts to HTML.
-For pdflatex branch (formula_fixed.tex)
+For pdflatex branch (formula.tex)
 """
 
 import re
@@ -124,8 +124,8 @@ def preprocess_tex_for_pandoc(tex_content):
     figure_counter = 0
 
     # Remove input commands
-    tex_content = re.sub(r'\\input\{template_fixed\}', '', tex_content)
-    tex_content = re.sub(r'\\input\{template_fixed\.tex\}', '', tex_content)
+    tex_content = re.sub(r'\\input\{template\}', '', tex_content)
+    tex_content = re.sub(r'\\input\{template\.tex\}', '', tex_content)
 
     # Remove page style commands
     tex_content = re.sub(r'\\thispagestyle\{[^}]*\}', '', tex_content)
@@ -611,7 +611,7 @@ def convert_to_html(tex_path, output_path):
 
     if not aux_path.exists():
         print(f"Error: {aux_path} not found. Please compile the LaTeX document first.")
-        print("Run: pdflatex formula_fixed.tex (multiple times to resolve references)")
+        print("Run: pdflatex formula.tex (multiple times to resolve references)")
         sys.exit(1)
 
     print("Parsing .aux file for label references...")

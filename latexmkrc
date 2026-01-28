@@ -1,1 +1,1 @@
-$pdflatex = "latexdiff --type=UNDERLINE formula_fixed.tex formula_fixed_new.tex > diff.tex && pdflatex %O %S";
+$pdflatex = "if [ -f formula_new.tex ]; then latexdiff --type=UNDERLINE formula.tex formula_new.tex > diff.tex; fi && pdflatex %O %S";

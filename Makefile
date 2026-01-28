@@ -1,9 +1,9 @@
 # Formula Student Korea 차량기술규정 빌드 스크립트 (pdflatex branch)
 
-TEX = formula_fixed.tex
-PDF = formula_fixed.pdf
-HTML = formula_fixed.html
-AUX = formula_fixed.aux
+TEX = formula.tex
+PDF = formula.pdf
+HTML = formula.html
+AUX = formula.aux
 SCRIPT = tex2html.py
 CSS = style.css
 
@@ -13,7 +13,7 @@ all: pdf html
 # PDF 생성 (3번 컴파일하여 참조 해결)
 pdf: $(PDF)
 
-$(PDF): $(TEX) template_fixed.tex
+$(PDF): $(TEX) template.tex
 	@echo "==> pdfLaTeX 1차 컴파일..."
 	pdflatex -interaction=nonstopmode $(TEX) > /dev/null 2>&1 || true
 	@echo "==> pdfLaTeX 2차 컴파일..."
