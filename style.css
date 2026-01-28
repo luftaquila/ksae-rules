@@ -74,7 +74,14 @@ h3 {
   line-height: 1.8;
 }
 
+/* 문서 헤더 내 span 기본 스타일 */
 .center span {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* 문서 제목 (첫 번째 span만) */
+.center > p > span:first-child {
   display: inline;
   font-size: 2em;
   font-weight: bold;

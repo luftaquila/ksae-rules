@@ -136,8 +136,43 @@ def preprocess_tex_for_pandoc(tex_content):
     tex_content = re.sub(r'\\end\{CJK\}', '', tex_content)
 
     # Remove color commands (for diff markup)
-    tex_content = re.sub(r'\\color\{[^}]*\}', '', tex_content)
-    tex_content = re.sub(r'\{\\color\{[^}]*\}([^}]*)\}', r'\1', tex_content)
+    # Handle {\color{blue}...} blocks that may span multiple lines
+    def remove_color_blocks(tex):
+        result = []
+        i = 0
+        while i < len(tex):
+            # Check for {\color{
+            if tex[i:i+8] == '{\\color{':
+                # Find the closing } of color argument
+                j = i + 8
+                while j < len(tex) and tex[j] != '}':
+                    j += 1
+                j += 1  # Skip the }
+
+                # Now we need to find the matching } for the outer {
+                depth = 1
+                content_start = j
+                while j < len(tex) and depth > 0:
+                    if tex[j] == '{':
+                        depth += 1
+                    elif tex[j] == '}':
+                        depth -= 1
+                    j += 1
+
+                # Extract content without the outer braces and color command
+                content = tex[content_start:j-1] if j > content_start else ''
+                result.append(content)
+                i = j
+                continue
+
+            result.append(tex[i])
+            i += 1
+
+        return ''.join(result)
+
+    tex_content = remove_color_blocks(tex_content)
+    # Handle \color{blue} without braces
+    tex_content = re.sub(r'[\\]color\{[^}]*\}', '', tex_content)
 
     # Fix document header - combine title lines into one
     tex_content = re.sub(
@@ -197,6 +232,110 @@ def preprocess_tex_for_pandoc(tex_content):
         return f'\\hypertarget{{{anchor}}}{{}}'
 
     tex_content = re.sub(r'\\label\{([^}]+)\}', replace_label, tex_content)
+
+    # Convert tblr environment to simple tabular
+    def convert_tblr_env(tex):
+        result = []
+        i = 0
+        while i < len(tex):
+            # Find \begin{tblr}
+            start = tex.find('\\begin{tblr}', i)
+            if start == -1:
+                result.append(tex[i:])
+                break
+
+            result.append(tex[i:start])
+
+            # Find the matching \end{tblr}
+            end_tag = '\\end{tblr}'
+            end = tex.find(end_tag, start)
+            if end == -1:
+                result.append(tex[start:])
+                break
+
+            tblr_content = tex[start:end + len(end_tag)]
+
+            # Extract content between options and \end{tblr}
+            # Find where options end (after the first set of nested braces)
+            brace_start = tblr_content.find('{', len('\\begin{tblr}'))
+            if brace_start != -1:
+                depth = 0
+                options_end = brace_start
+                for j in range(brace_start, len(tblr_content)):
+                    if tblr_content[j] == '{':
+                        depth += 1
+                    elif tblr_content[j] == '}':
+                        depth -= 1
+                        if depth == 0:
+                            options_end = j + 1
+                            break
+
+                table_content = tblr_content[options_end:tblr_content.rfind('\\end{tblr}')]
+            else:
+                table_content = ''
+
+            # Clean up table content
+            table_content = re.sub(r'\\SetCell\[[^\]]*\]\{[^}]*\}\s*', '', table_content)
+            table_content = table_content.strip()
+
+            # Count columns
+            if table_content:
+                first_row = table_content.split('\\\\')[0]
+                num_cols = first_row.count('&') + 1
+                colspec = '|' + 'c|' * num_cols
+
+                # Convert to tabular
+                converted = f'\\begin{{tabular}}{{{colspec}}}\n\\hline\n{table_content}\n\\hline\n\\end{{tabular}}'
+                result.append(converted)
+            else:
+                result.append('')
+
+            i = end + len(end_tag)
+
+        return ''.join(result)
+
+    tex_content = convert_tblr_env(tex_content)
+
+    # Remove footnotesize and other size commands
+    # Handle {\footnotesize ... } blocks by removing outer braces while preserving content
+    def remove_footnotesize_block(tex):
+        result = []
+        i = 0
+
+        while i < len(tex):
+            # Check for {\footnotesize
+            if tex[i:i+14] == '{\\footnotesize':
+                # Find the end of this pattern
+                j = i + 14
+                while j < len(tex) and tex[j] in ' \t\n':
+                    j += 1
+
+                # Now find the matching } for the outer { by tracking depth
+                depth = 1
+                content_start = j
+                while j < len(tex) and depth > 0:
+                    if tex[j] == '{':
+                        depth += 1
+                    elif tex[j] == '}':
+                        depth -= 1
+                    j += 1
+
+                # Extract content without outer braces and \footnotesize
+                content = tex[content_start:j-1] if j > content_start else ''
+                result.append(content)
+                i = j
+                continue
+
+            result.append(tex[i])
+            i += 1
+
+        return ''.join(result)
+
+    tex_content = remove_footnotesize_block(tex_content)
+    tex_content = re.sub(r'\\footnotesize\s*', '', tex_content)
+
+    # Remove any lone closing braces on their own line (cleanup)
+    tex_content = re.sub(r'\n\s*\}\s*\n', '\n', tex_content)
 
     return tex_content
 
@@ -325,7 +464,7 @@ def convert_to_html(tex_path, output_path):
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
 
-    preprocessed_path.unlink(missing_ok=True)
+    # preprocessed_path.unlink(missing_ok=True)
     template_path.unlink(missing_ok=True)
 
     print(f"HTML output saved to: {output_path}")

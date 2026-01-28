@@ -1,3 +1,6 @@
+*.aux
+*.log
 *.pdf
 *.html
+*_preprocessed.tex
 .env
