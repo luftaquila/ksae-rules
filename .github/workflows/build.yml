@@ -1,54 +1,81 @@
-name: Build PDF/HTML from LaTeX
+name: Build PDF/HTML and Deploy to Pages
 
 on:
   push:
-  workflow_call:
+    branches: [main]
   workflow_dispatch:
-  
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  prepare-fonts:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - run: |
-          mkdir -p fonts
-  
-          wget https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-myeongjo.zip
-          unzip nanum-myeongjo.zip
-          mv *.ttf fonts
-  
-          wget https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip
-          unzip Pretendard-1.3.9.zip
-          mv public/static/alternative/*.ttf fonts
-
-          wget https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf
-          mv *.otf fonts
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: fonts
-          path: fonts
-
-  compile:
-    runs-on: ubuntu-latest
-    needs: prepare-fonts
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
-      with:
-        name: fonts
-        path: fonts
 
-    - name: compile LaTeX
+    - name: Install fonts
+      run: |
+        mkdir -p fonts
+
+        wget -q https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-myeongjo.zip
+        unzip -q nanum-myeongjo.zip
+        mv *.ttf fonts/
+
+        wget -q https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip
+        unzip -q Pretendard-1.3.9.zip
+        mv public/static/alternative/*.ttf fonts/
+
+        wget -q https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf
+        mv *.otf fonts/
+
+    - name: Compile PDF
       uses: xu-cheng/latex-action@v3
       with:
-        root_file: |
-          formula.tex
+        root_file: formula.tex
         latexmk_use_lualatex: true
         extra_fonts: fonts/*
 
-    - name: upload pdf
-      uses: actions/upload-artifact@v4
+    - name: Setup Python
+      uses: actions/setup-python@v5
       with:
-        name: pdf
-        path: |
-          formula.pdf
+        python-version: '3.x'
+
+    - name: Install pandoc
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pandoc
+
+    - name: Build HTML
+      run: |
+        python3 tex2html.py formula.tex formula.html
+
+    - name: Prepare Pages
+      run: |
+        mkdir -p _site
+        cp formula.html _site/index.html
+        cp formula.pdf _site/
+        cp style.css _site/
+        cp -r assets _site/ 2>/dev/null || true
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
