@@ -76,16 +76,20 @@ jobs:
       run: |
         mkdir -p fonts
         wget -q https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-myeongjo.zip
-        unzip -q nanum-myeongjo.zip -d fonts/
-        wget -q https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-gothic.zip
-        unzip -q nanum-gothic.zip -d fonts/
+        unzip -q nanum-myeongjo.zip
+        mv *.ttf fonts/
+        wget -q https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip
+        unzip -q Pretendard-1.3.9.zip
+        mv public/static/alternative/*.ttf fonts/
+        wget -q https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf
+        mv *.otf fonts/
 
     - name: Create diff PDF
       if: steps.tag.outputs.has_previous == 'true'
       uses: xu-cheng/latex-action@v3
       with:
         root_file: diff.tex
-        latexmk_shell_escape: true
+        latexmk_use_lualatex: true
         extra_fonts: fonts/*
         pre_compile: |
           latexdiff --type=UNDERLINE formula_old.tex formula.tex > diff.tex
