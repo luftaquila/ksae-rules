@@ -108,6 +108,7 @@ def resolve_refs_in_tex(tex_content, labels):
         label = match.group(1)
         return make_link(label, get_label_display(label))
 
+    tex_content = re.sub(r'\\figref\{([^}]+)\}', replace_cref, tex_content)
     tex_content = re.sub(r'\\cref\{([^}]+)\}', replace_cref, tex_content)
     tex_content = re.sub(r'\\Cref\{([^}]+)\}', replace_cref, tex_content)
     tex_content = re.sub(r'\\ref\{([^}]+)\}', replace_ref, tex_content)
