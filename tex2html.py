@@ -535,10 +535,57 @@ $body$
     shareBtn.addEventListener('click', async () => {
       if (!selectedText) return;
 
-      // Create URL with text fragment
+      // Create URL with text fragment including prefix and suffix for precise matching
       const baseUrl = window.location.href.split('#')[0];
+      
+      // Get the selection context (prefix and suffix) for precise matching
+      const selection = window.getSelection();
+      let prefix = '';
+      let suffix = '';
+      
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const container = range.commonAncestorContainer;
+        
+        // Get text content around the selection
+        const textNode = container.nodeType === Node.TEXT_NODE ? container : container;
+        const fullText = textNode.textContent || '';
+        
+        if (container.nodeType === Node.TEXT_NODE) {
+          const startOffset = range.startOffset;
+          const endOffset = range.endOffset;
+          
+          // Extract prefix (up to 20 chars before selection)
+          const prefixStart = Math.max(0, startOffset - 20);
+          prefix = fullText.substring(prefixStart, startOffset).trim();
+          // Take last few words as prefix
+          const prefixWords = prefix.split(/\\s+/);
+          prefix = prefixWords.slice(-3).join(' ');
+          
+          // Extract suffix (up to 20 chars after selection)
+          const suffixEnd = Math.min(fullText.length, endOffset + 20);
+          suffix = fullText.substring(endOffset, suffixEnd).trim();
+          // Take first few words as suffix
+          const suffixWords = suffix.split(/\\s+/);
+          suffix = suffixWords.slice(0, 3).join(' ');
+        }
+      }
+      
+      // Build the text fragment with prefix and/or suffix
+      let textFragment = '';
       const encodedText = encodeURIComponent(selectedText);
-      const url = baseUrl + '#:~:text=' + encodedText;
+      
+      if (prefix && suffix) {
+        textFragment = encodeURIComponent(prefix) + '-,' + encodedText + ',-' + encodeURIComponent(suffix);
+      } else if (prefix) {
+        textFragment = encodeURIComponent(prefix) + '-,' + encodedText;
+      } else if (suffix) {
+        textFragment = encodedText + ',-' + encodeURIComponent(suffix);
+      } else {
+        textFragment = encodedText;
+      }
+      
+      const url = baseUrl + '#:~:text=' + textFragment;
 
       try {
         await navigator.clipboard.writeText(url);
@@ -567,31 +614,108 @@ $body$
     (function() {
       const hash = window.location.hash;
       if (hash.includes(':~:text=')) {
-        const textToFind = decodeURIComponent(hash.split(':~:text=')[1]);
-        if (textToFind) {
-          const walker = document.createTreeWalker(
-            document.getElementById('content'),
-            NodeFilter.SHOW_TEXT,
-            null,
-            false
-          );
+        const fragment = decodeURIComponent(hash.split(':~:text=')[1]);
+        if (!fragment) return;
+        
+        // Parse the text fragment: prefix-,targetText,-suffix
+        let prefix = '';
+        let targetText = '';
+        let suffix = '';
+        
+        if (fragment.includes('-,') || fragment.includes(',-')) {
+          // Has prefix and/or suffix
+          const parts = fragment.split(',-');
+          const firstPart = parts[0];
+          suffix = parts[1] || '';
+          
+          if (firstPart.includes('-,')) {
+            const subParts = firstPart.split('-,');
+            prefix = subParts[0];
+            targetText = subParts[1];
+          } else {
+            targetText = firstPart;
+          }
+        } else {
+          targetText = fragment;
+        }
+        
+        if (!targetText) return;
+        
+        const content = document.getElementById('content');
+        const walker = document.createTreeWalker(
+          content,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false
+        );
 
-          let node;
-          while (node = walker.nextNode()) {
-            const idx = node.textContent.indexOf(textToFind);
-            if (idx !== -1) {
+        let node;
+        let found = false;
+        while (node = walker.nextNode()) {
+          const nodeText = node.textContent;
+          let idx = nodeText.indexOf(targetText);
+          
+          while (idx !== -1 && !found) {
+            // If we have prefix/suffix, verify context
+            let matches = true;
+            
+            if (prefix) {
+              // Check if prefix exists before the target text
+              const beforeText = nodeText.substring(0, idx);
+              if (!beforeText.includes(prefix)) {
+                // Check in previous text nodes
+                let prevText = '';
+                let prevNode = node.previousSibling;
+                while (prevNode && prevText.length < 100) {
+                  if (prevNode.nodeType === Node.TEXT_NODE) {
+                    prevText = prevNode.textContent + prevText;
+                  }
+                  prevNode = prevNode.previousSibling;
+                }
+                if (!(beforeText + prevText).includes(prefix)) {
+                  matches = false;
+                }
+              }
+            }
+            
+            if (suffix && matches) {
+              // Check if suffix exists after the target text
+              const afterText = nodeText.substring(idx + targetText.length);
+              if (!afterText.includes(suffix)) {
+                // Check in next text nodes
+                let nextText = '';
+                let nextNode = node.nextSibling;
+                while (nextNode && nextText.length < 100) {
+                  if (nextNode.nodeType === Node.TEXT_NODE) {
+                    nextText += nextNode.textContent;
+                  }
+                  nextNode = nextNode.nextSibling;
+                }
+                if (!(afterText + nextText).includes(suffix)) {
+                  matches = false;
+                }
+              }
+            }
+            
+            if (matches) {
               const range = document.createRange();
               range.setStart(node, idx);
-              range.setEnd(node, idx + textToFind.length);
+              range.setEnd(node, idx + targetText.length);
 
               const highlight = document.createElement('mark');
               highlight.className = 'text-highlight';
               range.surroundContents(highlight);
 
               highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              found = true;
               break;
             }
+            
+            // Find next occurrence
+            idx = nodeText.indexOf(targetText, idx + 1);
           }
+          
+          if (found) break;
         }
       }
     })();
