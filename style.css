@@ -1,0 +1,376 @@
+/* Formula Student Korea 차량기술규정 스타일 */
+
+:root {
+  --primary-color: #1a365d;
+  --secondary-color: #2c5282;
+  --accent-color: #3182ce;
+  --border-color: #e2e8f0;
+  --bg-light: #f7fafc;
+  --bg-header: #edf2f7;
+  --text-color: #1a202c;
+  --text-muted: #718096;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', Georgia, serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: #fff;
+  font-size: 15px;
+}
+
+/* 제목 스타일 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--primary-color);
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  line-height: 1.4;
+}
+
+h1 {
+  font-size: 1.75em;
+  padding-bottom: 0.5em;
+  border-bottom: 3px solid var(--primary-color);
+  margin-top: 2.5em;
+}
+
+h1:first-of-type {
+  margin-top: 1em;
+}
+
+h2 {
+  font-size: 1.35em;
+  padding-left: 12px;
+  border-left: 4px solid var(--accent-color);
+  margin-top: 1.8em;
+}
+
+h3 {
+  font-size: 1.15em;
+  color: var(--secondary-color);
+}
+
+/* 문서 헤더 */
+.center, div.center {
+  text-align: center;
+  padding: 30px 20px;
+  margin-bottom: 30px;
+}
+
+.center p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+.center span {
+  display: inline;
+  font-size: 2em;
+  font-weight: bold;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  color: var(--text-color);
+}
+
+/* 단락 */
+p {
+  margin: 0.5em 0;
+  text-align: justify;
+}
+
+/* 목록 스타일 */
+ol {
+  list-style: none;
+  counter-reset: item;
+  padding-left: 1.5em;
+  margin: 0.6em 0;
+}
+
+ol > li {
+  counter-increment: item;
+  margin-bottom: 0.4em;
+  padding-left: 1.8em;
+  position: relative;
+}
+
+ol > li::before {
+  content: counter(item, decimal-enclosed-circle);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--text-color);
+}
+
+/* 2단계 목록 */
+ol ol {
+  counter-reset: subitem;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+ol ol > li {
+  counter-increment: subitem;
+  padding-left: 1.5em;
+  margin-bottom: 0.3em;
+}
+
+ol ol > li::before {
+  content: counter(subitem) ".";
+  color: var(--text-color);
+}
+
+/* 3단계 목록 */
+ol ol ol {
+  counter-reset: subsubitem;
+}
+
+ol ol ol > li {
+  counter-increment: subsubitem;
+}
+
+ol ol ol > li::before {
+  content: counter(subsubitem, hangul-consonant) ".";
+  color: var(--text-color);
+}
+
+/* 순서 없는 목록 */
+ul {
+  padding-left: 1.5em;
+  margin: 0.8em 0;
+}
+
+ul li {
+  margin-bottom: 0.4em;
+}
+
+/* 이미지와 그림 */
+figure {
+  text-align: center;
+  margin: 1.5em auto;
+  padding: 0;
+}
+
+figure img {
+  max-width: 100%;
+  height: auto;
+}
+
+figcaption {
+  font-weight: bold;
+  margin-top: 0.5em;
+  color: var(--text-color);
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  font-size: 0.9em;
+}
+
+/* 테이블 */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em 0;
+  font-size: 0.95em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+thead {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+th {
+  padding: 12px 16px;
+  text-align: center;
+  font-weight: 600;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+
+td {
+  padding: 10px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--bg-light);
+}
+
+tbody tr:hover {
+  background-color: var(--bg-header);
+}
+
+/* 수식 */
+.math, mjx-container {
+  overflow-x: auto;
+  padding: 0.5em 0;
+}
+
+/* 강조 */
+strong, b {
+  color: var(--primary-color);
+}
+
+em, i {
+  color: var(--secondary-color);
+}
+
+/* 구분선 */
+hr {
+  border: none;
+  border-top: 2px solid var(--border-color);
+  margin: 2em 0;
+}
+
+/* description list */
+dl {
+  margin: 1em 0;
+  padding-left: 1em;
+}
+
+dt {
+  font-weight: bold;
+  color: var(--secondary-color);
+  margin-top: 0.8em;
+}
+
+dd {
+  margin-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* 인용구/블록 */
+blockquote {
+  margin: 1.5em 0;
+  padding: 1em 1.5em;
+  border-left: 4px solid var(--accent-color);
+  background-color: var(--bg-light);
+  border-radius: 0 8px 8px 0;
+}
+
+/* 링크 */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 참조 링크 */
+a.ref-link, a[href^="#"] {
+  color: var(--accent-color);
+}
+
+a.ref-link:hover, a[href^="#"]:hover {
+  text-decoration: underline;
+}
+
+/* 앵커 타겟 하이라이트 */
+:target {
+  animation: highlight 2s ease-out;
+}
+
+@keyframes highlight {
+  0% { background-color: rgba(255, 230, 0, 0.4); }
+  100% { background-color: transparent; }
+}
+
+/* 밑줄 (양식) */
+u {
+  text-decoration: none;
+  border-bottom: 1px solid var(--text-color);
+  padding-bottom: 2px;
+  min-width: 100px;
+  display: inline-block;
+}
+
+/* 코드 블록 */
+code, pre {
+  font-family: 'D2Coding', 'Consolas', monospace;
+  background-color: var(--bg-light);
+  border-radius: 4px;
+}
+
+code {
+  padding: 2px 6px;
+  font-size: 0.9em;
+}
+
+pre {
+  padding: 1em;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  body {
+    padding: 20px 16px;
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+  }
+
+  h2 {
+    font-size: 1.25em;
+  }
+
+  .center span {
+    font-size: 1.5em;
+  }
+
+  table {
+    font-size: 0.85em;
+  }
+
+  th, td {
+    padding: 8px 10px;
+  }
+}
+
+/* 인쇄 스타일 */
+@media print {
+  body {
+    max-width: none;
+    padding: 0;
+    font-size: 11pt;
+  }
+
+  h1, h2 {
+    page-break-after: avoid;
+  }
+
+  figure, table {
+    page-break-inside: avoid;
+  }
+
+  a {
+    color: var(--text-color);
+  }
+}
+
+/* 한글 원문자 카운터 */
+@counter-style decimal-enclosed-circle {
+  system: fixed;
+  symbols: "①" "②" "③" "④" "⑤" "⑥" "⑦" "⑧" "⑨" "⑩"
+           "⑪" "⑫" "⑬" "⑭" "⑮" "⑯" "⑰" "⑱" "⑲" "⑳";
+}
+
+@counter-style hangul-consonant {
+  system: fixed;
+  symbols: "가" "나" "다" "라" "마" "바" "사" "아" "자" "차" "카" "타" "파" "하";
+}
