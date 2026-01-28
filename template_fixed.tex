@@ -1,6 +1,8 @@
 % packages
 \usepackage{tikz}
+\usepackage{color}
 \usepackage{float}
+\usepackage{CJKutf8}
 \usepackage{kotex}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -8,12 +10,12 @@
 \usepackage{enumitem}
 \usepackage{etoolbox}
 \usepackage{fancyhdr}
-\usepackage{fontspec}
 \usepackage{graphicx}
 \usepackage{multirow}
 \usepackage{titlesec}
 \usepackage{tabularray}
 \usepackage{indentfirst}
+\usepackage[normalem]{ulem}
 \usepackage[unicode,
             pdfencoding=auto,
             bookmarks=true,
@@ -26,27 +28,10 @@
 % margins
 \usepackage[margin=2cm,bottom=3.5cm]{geometry}
 
-% fonts
-\setmainfont{NanumMyeongjo}[
-  UprightFont     = {NanumMyeongjo},
-  BoldFont        = {NanumMyeongjo Bold},
-  ExtraBoldFont   = {NanumMyeongjo ExtraBold},
-  ItalicFont      = {NanumMyeongjo},
-  ItalicFeatures  = {FakeSlant=0.2},
-  LetterSpace=3
-]
-
 \linespread{1.3}\selectfont
 
-\newfontfamily\textb{NanumMyeongjo Bold}
-\newfontfamily\texteb{NanumMyeongjo ExtraBold}
-\newfontfamily\pretendard{Pretendard}
-\newfontfamily\pretendardb{Pretendard Bold}
-\newfontfamily\pretendardeb{Pretendard ExtraBold}
-\newfontfamily\hanja{Noto Sans CJK TC}[Script=CJK]
-
 \makeatletter
-  \spaceskip=1.5\fontdimen2\font
+  \spaceskip=1.85\fontdimen2\font
              plus 0.3\fontdimen3\font
              minus 0.2\fontdimen4\font
 \makeatother
@@ -77,9 +62,9 @@
 \newcommand{\setupfancy}{
   \fancyhfoffset[L]{\dimexpr\margin-\borderoffset\relax}
   \fancyhfoffset[R]{\dimexpr\margin-\borderoffset\relax}
-  \lfoot{\pretendardb{자동차공학은 한국의 힘!}}
-  \cfoot{\pretendardb{\thepage}}
-  \rfoot{\pretendardb{사단법인 한국자동차공학회}}
+  \lfoot{\textbf{자동차공학은 한국의 힘!}}
+  \cfoot{\textbf{\thepage}}
+  \rfoot{\textbf{사단법인 한국자동차공학회}}
 }
 \makeatother
 \setupfancy
@@ -106,7 +91,7 @@
 \fancypagestyle{firstpage}{
   \fancyheadoffset[L]{\dimexpr\margin-\borderoffset+0.5cm\relax}
   \fancyfootoffset[L]{\dimexpr\margin-\borderoffset\relax}
-  \lhead{\SidePaddedBox{1pt}{10pt}{40pt}{1pt}{\pretendard\fontsize{10}{12}\selectfont 한국자동차공학회 규정}}
+  \lhead{\SidePaddedBox{1pt}{10pt}{40pt}{1pt}{한국자동차공학회 규정}}
   \renewcommand{\headrulewidth}{0pt}
 }
 
@@ -126,26 +111,25 @@
   {\thispagestyle{plain}}
   {}{}{}
 \makeatother
-
 \renewcommand{\chaptermark}[1]{}
 \titleformat{\chapter}[hang]
-  {\pretendardb\fontsize{12}{16}\selectfont}
+  {\gtfamily\bfseries\fontsize{12}{16}\selectfont}
   {제\arabic{chapter}장}
   {0.5em}
   {}
-\titlespacing*{\chapter}{0pt}{3ex}{1ex}
+\titlespacing*{\chapter}{0pt}{0ex}{0ex}
 \pagestyle{plain}
 
 % sections
 \counterwithout{section}{chapter}
-\renewcommand\thesection{\arabic{section}}
-\newcommand{\lawformat}[1]{\mbox{제\thesection{}조 (#1)}}
+\renewcommand\thesection{제\arabic{section}조}
+\newcommand{\lawformat}[1]{\mbox{\thesection{} (#1)}}
 \titleformat{\section}[block]
-  {\textb}
+  {\gtfamily\bfseries\fontsize{10}{16}\selectfont}
   {}
   {0pt}
   {\lawformat}
-\titlespacing*{\section}{0pt}{3ex}{1ex}
+\titlespacing*{\section}{0pt}{1ex}{1ex}
 
 % items
 \DeclareRobustCommand*{\circlenum}{
@@ -164,9 +148,8 @@
     가\or 나\or 다\or 라\or 마\or 바\or 사\or 아\or 자\or 차\or 카\or 타\or 파\or 하
   \else ?\fi
 }
-
-\setlist[enumerate,1]{ref={제\thesection{}조~\arabic*항},labelsep=0.5em,itemsep=0pt,leftmargin=3em}
-\setlist[enumerate,2]{ref={제\thesection{}조~\arabic{enumi}항~\arabic*번},label=\arabic*.,labelsep=0.5em,leftmargin=2.5em}
+\setlist[enumerate,1]{ref={\thesection{}~\arabic*항},labelsep=0.5em,itemsep=0pt,leftmargin=3em}
+\setlist[enumerate,2]{ref={\thesection{}~\arabic{enumi}항~\arabic*번},label=\arabic*.,labelsep=0.5em,leftmargin=2.5em}
 \setlist[enumerate,3]{label={\koreannum{\arabic*}.},labelsep=0.5em,leftmargin=2.5em}
 \setlist[enumerate,4]{label=\alph*.,labelsep=0.5em,leftmargin=2.5em}
 \setlist[itemize,1]{label=\textbullet,leftmargin=2em,itemsep=0.5ex,before=\small}
@@ -178,10 +161,11 @@
 
 % hyperlinks
 \let\origcref\cref
-\renewcommand{\cref}[1]{\textit{\origcref{#1}}}
+%\renewcommand{\cref}[1]{\textit{\origcref{#1}}}
 
 \creflabelformat{chapter}{#2제#1장#3}
 \creflabelformat{section}{#2제#1조#3}
+
 \crefname{chapter}{}{}
 \crefname{section}{}{}
 \crefname{figure}{그림}{그림}
@@ -196,6 +180,7 @@
 \makeatother
 
 % figures
+
 \graphicspath{{assets/}}
 \captionsetup[figure]{
   name=그림,
@@ -203,7 +188,7 @@
   figurewithin=none
 }
 \captionsetup[figure]{labelfont=bf, textfont=bf}
-
+\newcommand{\figref}[1]{그림~\ref{#1}}
 \newcommand{\fig}[3]{
   \begin{figure}[H]
     \centering
@@ -211,3 +196,9 @@
     \caption{#1}\label{fig:#1}
   \end{figure}
 }
+
+% latexdiff
+\providecommand{\DIFadd}[1]{{\protect\color{blue}#1}} 
+\renewcommand{\DIFadd}[1]{{\protect\color{blue}#1}}
+\providecommand{\DIFdel}[1]{{\protect\color{red}\sout{#1}}}
+\renewcommand{\DIFdel}[1]{{\protect\color{red}\sout{#1}}}
