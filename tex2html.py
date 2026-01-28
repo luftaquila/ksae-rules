@@ -340,6 +340,54 @@ def preprocess_tex_for_pandoc(tex_content):
     return tex_content
 
 
+def add_heading_ids(html_content):
+    """Add IDs to h1 and h2 tags for TOC navigation."""
+    heading_counter = {'h1': 0, 'h2': 0}
+
+    def add_id(match):
+        tag = match.group(1)
+        attrs = match.group(2) or ''
+        content = match.group(3)
+
+        # Skip if already has id
+        if 'id="' in attrs:
+            return match.group(0)
+
+        heading_counter[tag] += 1
+        # Create slug from content
+        slug = re.sub(r'[^\w\s가-힣-]', '', content)
+        slug = re.sub(r'\s+', '-', slug.strip())
+        heading_id = f'{tag}-{heading_counter[tag]}-{slug[:30]}'
+
+        if attrs:
+            return f'<{tag} {attrs} id="{heading_id}">{content}</{tag}>'
+        else:
+            return f'<{tag} id="{heading_id}">{content}</{tag}>'
+
+    html_content = re.sub(r'<(h1|h2)([^>]*)>([^<]+)</\1>', add_id, html_content)
+    return html_content
+
+
+def generate_toc(html_content):
+    """Generate table of contents from h1 and h2 tags."""
+    toc_items = []
+
+    # Find all h1 (chapters) and h2 (sections) tags with id
+    heading_pattern = re.compile(r'<(h1|h2)[^>]*id="([^"]*)"[^>]*>([^<]*)</\1>')
+
+    for match in heading_pattern.finditer(html_content):
+        level = match.group(1)
+        heading_id = match.group(2)
+        text = match.group(3).strip()
+
+        if level == 'h1':
+            toc_items.append(f'<a href="#{heading_id}" class="toc-chapter">{text}</a>')
+        else:
+            toc_items.append(f'<a href="#{heading_id}" class="toc-section">{text}</a>')
+
+    return '\n      '.join(toc_items)
+
+
 def postprocess_html(html_content):
     """Post-process the HTML output for better formatting."""
 
@@ -368,6 +416,13 @@ def postprocess_html(html_content):
     html_content = html_content.replace('\\&', '&amp;')
     html_content = html_content.replace('\\$', '$')
 
+    # Add IDs to headings for TOC navigation
+    html_content = add_heading_ids(html_content)
+
+    # Generate and inject TOC
+    toc_html = generate_toc(html_content)
+    html_content = html_content.replace('<!-- TOC_PLACEHOLDER -->', toc_html)
+
     return html_content
 
 
@@ -394,7 +449,59 @@ def create_pandoc_template():
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
+  <nav id="toc">
+    <div class="toc-header">목차</div>
+    <div class="toc-content">
+      <!-- TOC_PLACEHOLDER -->
+    </div>
+  </nav>
+  <button id="toc-toggle" aria-label="Toggle TOC">☰</button>
+  <button id="theme-toggle" aria-label="Toggle Dark Mode">🌙</button>
+  <main id="content">
 $body$
+  </main>
+  <script>
+    // TOC Toggle
+    const tocToggle = document.getElementById('toc-toggle');
+    const toc = document.getElementById('toc');
+    tocToggle.addEventListener('click', () => {
+      toc.classList.toggle('open');
+    });
+    // Close TOC when clicking a link on mobile
+    toc.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 1024) {
+          toc.classList.remove('open');
+        }
+      });
+    });
+
+    // Dark Mode Toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Check saved preference or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+      html.setAttribute('data-theme', 'dark');
+      themeToggle.textContent = '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        themeToggle.textContent = '🌙';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        themeToggle.textContent = '☀️';
+      }
+    });
+  </script>
 </body>
 </html>
 '''
