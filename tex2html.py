@@ -448,7 +448,10 @@ def create_pandoc_template():
 </head>
 <body>
   <nav id="toc">
-    <div class="toc-header">목차</div>
+    <div class="toc-header">
+      <button id="toc-close" aria-label="Close TOC">✕</button>
+      <span>목차</span>
+    </div>
     <div class="toc-content">
       <!-- TOC_PLACEHOLDER -->
     </div>
@@ -463,10 +466,17 @@ $body$
   <script>
     // TOC Toggle
     const tocToggle = document.getElementById('toc-toggle');
+    const tocClose = document.getElementById('toc-close');
     const toc = document.getElementById('toc');
+    
     tocToggle.addEventListener('click', () => {
-      toc.classList.toggle('open');
+      toc.classList.add('open');
     });
+    
+    tocClose.addEventListener('click', () => {
+      toc.classList.remove('open');
+    });
+    
     // Close TOC when clicking a link on mobile
     toc.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
@@ -505,29 +515,69 @@ $body$
     // Text Selection Share Link
     const shareBtn = document.getElementById('share-selection');
     let selectedText = '';
+    let selectionTimeout = null;
 
-    document.addEventListener('mouseup', (e) => {
-      setTimeout(() => {
+    function handleSelection() {
+      clearTimeout(selectionTimeout);
+      selectionTimeout = setTimeout(() => {
         const selection = window.getSelection();
         const text = selection.toString().trim();
 
         if (text.length > 3 && text.length < 200) {
           selectedText = text;
-          const range = selection.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
+          try {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
 
-          shareBtn.style.display = 'block';
-          shareBtn.style.left = (rect.left + window.scrollX + rect.width / 2 - shareBtn.offsetWidth / 2) + 'px';
-          shareBtn.style.top = (rect.top + window.scrollY - 40) + 'px';
-          shareBtn.textContent = '🔗 링크 복사';
-          shareBtn.classList.remove('copied');
+            shareBtn.style.display = 'block';
+            shareBtn.style.left = (rect.left + window.scrollX + rect.width / 2 - shareBtn.offsetWidth / 2) + 'px';
+            shareBtn.style.top = (rect.top + window.scrollY - 40) + 'px';
+            shareBtn.textContent = '🔗 링크 복사';
+            shareBtn.classList.remove('copied');
+          } catch (e) {
+            shareBtn.style.display = 'none';
+          }
         } else {
           shareBtn.style.display = 'none';
         }
       }, 10);
+    }
+
+    // Desktop: mouseup
+    document.addEventListener('mouseup', handleSelection);
+    
+    // Mobile: selectionchange (for touch selection)
+    document.addEventListener('selectionchange', () => {
+      clearTimeout(selectionTimeout);
+      selectionTimeout = setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+        
+        if (text.length > 3 && text.length < 200) {
+          selectedText = text;
+          try {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+
+            shareBtn.style.display = 'block';
+            shareBtn.style.left = (rect.left + window.scrollX + rect.width / 2 - shareBtn.offsetWidth / 2) + 'px';
+            shareBtn.style.top = (rect.top + window.scrollY - 40) + 'px';
+            shareBtn.textContent = '🔗 링크 복사';
+            shareBtn.classList.remove('copied');
+          } catch (e) {
+            // Ignore errors
+          }
+        }
+      }, 200);
     });
 
     document.addEventListener('mousedown', (e) => {
+      if (e.target !== shareBtn) {
+        shareBtn.style.display = 'none';
+      }
+    });
+    
+    document.addEventListener('touchstart', (e) => {
       if (e.target !== shareBtn) {
         shareBtn.style.display = 'none';
       }

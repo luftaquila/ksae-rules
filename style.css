@@ -87,15 +87,37 @@ body {
 }
 
 .toc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 1.1em;
   font-weight: 700;
   color: var(--primary-color);
-  padding: 20px 16px 12px;
+  padding: 16px;
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-header);
   position: sticky;
   top: 0;
+}
+
+/* 목차 닫기 버튼 (데스크탑에서 숨김) */
+#toc-close {
+  display: none;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+#toc-close:hover {
+  background-color: var(--bg-light);
 }
 
 .toc-content {
@@ -543,7 +565,8 @@ pre {
   gap: 6px;
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
   z-index: 300;
   background-color: var(--primary-color);
   color: var(--bg-body);
@@ -556,32 +579,20 @@ pre {
   box-shadow: 0 4px 12px var(--shadow-color);
   font-family: 'Noto Sans KR', sans-serif;
   opacity: 0;
-  transform: translateY(20px);
   transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.15s ease;
 }
 
 #back-to-position.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
 
 #back-to-position:hover {
   background-color: var(--secondary-color);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px var(--shadow-color);
 }
 
 #back-to-position:active {
-  transform: translateY(0);
-}
-
-[data-theme="dark"] #back-to-position {
-  background-color: #404040;
-  color: #e0e0e0;
-}
-
-[data-theme="dark"] #back-to-position:hover {
-  background-color: #505050;
+  transform: translateX(-50%) translateY(2px);
 }
 
 /* 하이라이트된 텍스트 */
@@ -624,8 +635,22 @@ pre {
     box-shadow: 4px 0 20px rgba(0,0,0,0.15);
   }
 
+  /* 목차가 열리면 외부 토글 버튼 숨김 */
+  #toc.open ~ #toc-toggle {
+    opacity: 0;
+    pointer-events: none;
+  }
+
   #toc-toggle {
     display: block;
+    transition: opacity 0.2s ease;
+  }
+
+  /* 목차 내부 닫기 버튼 표시 */
+  #toc-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   #theme-toggle {
@@ -637,8 +662,8 @@ pre {
     padding-top: 60px;
   }
 
-  .toc-header {
-    padding-left: 56px;
+  #back-to-position {
+    bottom: 20px;
   }
 }
 
@@ -657,13 +682,8 @@ pre {
     width: 260px;
   }
 
-  .toc-header {
-    padding-left: 58px;
-  }
-
   #back-to-position {
     bottom: 16px;
-    right: 16px;
     padding: 10px 14px;
     font-size: 0.85em;
   }
