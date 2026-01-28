@@ -1,8 +1,6 @@
 % packages
 \usepackage{tikz}
-\usepackage{color}
 \usepackage{float}
-\usepackage{CJKutf8}
 \usepackage{kotex}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -10,8 +8,8 @@
 \usepackage{enumitem}
 \usepackage{etoolbox}
 \usepackage{fancyhdr}
+\usepackage{fontspec}
 \usepackage{graphicx}
-\usepackage{multirow}
 \usepackage{titlesec}
 \usepackage{tabularray}
 \usepackage{indentfirst}
@@ -28,10 +26,22 @@
 % margins
 \usepackage[margin=2cm,bottom=3.5cm]{geometry}
 
+% fonts
+\setmainfont{HCR Batang}[
+  BoldFont        = {HCR Batang Bold},
+  ItalicFont      = {HCR Batang},
+  ItalicFeatures  = {FakeSlant=0.2},
+  LetterSpace=3
+]
+
 \linespread{1.3}\selectfont
 
+\newfontfamily\textb{HCR Batang Bold}
+\newfontfamily\pretendard{Pretendard}
+\newfontfamily\pretendardb{Pretendard Bold}
+
 \makeatletter
-  \spaceskip=1.85\fontdimen2\font
+  \spaceskip=1.5\fontdimen2\font
              plus 0.3\fontdimen3\font
              minus 0.2\fontdimen4\font
 \makeatother
@@ -62,9 +72,9 @@
 \newcommand{\setupfancy}{
   \fancyhfoffset[L]{\dimexpr\margin-\borderoffset\relax}
   \fancyhfoffset[R]{\dimexpr\margin-\borderoffset\relax}
-  \lfoot{\textbf{자동차공학은 한국의 힘!}}
-  \cfoot{\textbf{\thepage}}
-  \rfoot{\textbf{사단법인 한국자동차공학회}}
+  \lfoot{\pretendardb{자동차공학은 한국의 힘!}}
+  \cfoot{\pretendardb{\thepage}}
+  \rfoot{\pretendardb{사단법인 한국자동차공학회}}
 }
 \makeatother
 \setupfancy
@@ -79,7 +89,7 @@
       \vskip #1
       \hbox{
         \hskip #2
-        \color{white}\textbf{\small #5}
+        \color{white}\pretendard\fontsize{10}{12}\selectfont #5
         \hskip #3
       }
       \vskip #4
@@ -113,11 +123,11 @@
 \makeatother
 \renewcommand{\chaptermark}[1]{}
 \titleformat{\chapter}[hang]
-  {\gtfamily\bfseries\fontsize{12}{16}\selectfont}
+  {\pretendardb\fontsize{12}{16}\selectfont}
   {제\arabic{chapter}장}
   {0.5em}
   {}
-\titlespacing*{\chapter}{0pt}{0ex}{0ex}
+\titlespacing*{\chapter}{0pt}{3ex}{1ex}
 \pagestyle{plain}
 
 % sections
@@ -125,11 +135,11 @@
 \renewcommand\thesection{제\arabic{section}조}
 \newcommand{\lawformat}[1]{\mbox{\thesection{} (#1)}}
 \titleformat{\section}[block]
-  {\gtfamily\bfseries\fontsize{10}{16}\selectfont}
+  {\textb}
   {}
   {0pt}
   {\lawformat}
-\titlespacing*{\section}{0pt}{1ex}{1ex}
+\titlespacing*{\section}{0pt}{3ex}{1ex}
 
 % items
 \DeclareRobustCommand*{\circlenum}{
@@ -160,8 +170,6 @@
 \setlength{\parindent}{0pt}
 
 % hyperlinks
-\let\origcref\cref
-%\renewcommand{\cref}[1]{\textit{\origcref{#1}}}
 
 \creflabelformat{chapter}{#2제#1장#3}
 \creflabelformat{section}{#2제#1조#3}

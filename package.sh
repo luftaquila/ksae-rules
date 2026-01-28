@@ -13,9 +13,9 @@ sudo ./bin/docker-compose exec -it sharelatex unzip temp/pretendard.zip -d temp
 sudo ./bin/docker-compose exec -it sharelatex mv temp/public/static/alternative fonts
 sudo ./bin/docker-compose exec -it sharelatex rm -rf temp
 
-sudo ./bin/docker-compose exec -it sharelatex wget https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-myeongjo.zip -O fonts/nanum-myeongjo.zip
-sudo ./bin/docker-compose exec -it sharelatex unzip fonts/nanum-myeongjo.zip -d fonts
-sudo ./bin/docker-compose exec -it sharelatex rm fonts/nanum-myeongjo.zip
+sudo ./bin/docker-compose exec -it sharelatex wget --referer="https://www.hancom.com/" https://cdn.hancom.com/pds/docs/HancomFont.zip -O fonts/HancomFont.zip
+sudo ./bin/docker-compose exec -it sharelatex unzip fonts/HancomFont.zip HCRBatang.ttf HCRBatang-Bold.ttf -d fonts
+sudo ./bin/docker-compose exec -it sharelatex rm fonts/HancomFont.zip
 
 sudo ./bin/docker-compose exec -it sharelatex wget https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf -O fonts/NotoSansCJKtc-Regular.otf
 

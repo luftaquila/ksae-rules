@@ -1,4 +1,4 @@
-# Formula Student Korea 차량기술규정 빌드 스크립트 (pdflatex branch)
+# Formula Student Korea 차량기술규정 빌드 스크립트 (lualatex)
 
 TEX = formula.tex
 PDF = formula.pdf
@@ -14,12 +14,12 @@ all: pdf html
 pdf: $(PDF)
 
 $(PDF): $(TEX) template.tex
-	@echo "==> pdfLaTeX 1차 컴파일..."
-	pdflatex -interaction=nonstopmode $(TEX) > /dev/null 2>&1 || true
-	@echo "==> pdfLaTeX 2차 컴파일..."
-	pdflatex -interaction=nonstopmode $(TEX) > /dev/null 2>&1 || true
-	@echo "==> pdfLaTeX 3차 컴파일..."
-	pdflatex -interaction=nonstopmode $(TEX) > /dev/null 2>&1 || true
+	@echo "==> LuaLaTeX 1차 컴파일..."
+	lualatex -interaction=nonstopmode $(TEX) > /dev/null 2>&1 || true
+	@echo "==> LuaLaTeX 2차 컴파일..."
+	lualatex -interaction=nonstopmode $(TEX) > /dev/null 2>&1 || true
+	@echo "==> LuaLaTeX 3차 컴파일..."
+	lualatex -interaction=nonstopmode $(TEX) > /dev/null 2>&1 || true
 	@echo "==> PDF 생성 완료: $(PDF)"
 
 # HTML 생성 (PDF가 먼저 생성되어야 .aux 파일 존재)

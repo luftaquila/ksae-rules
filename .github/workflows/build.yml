@@ -24,16 +24,20 @@ jobs:
     - name: Install fonts
       run: |
         mkdir -p fonts
-        wget -q https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-myeongjo.zip
-        unzip -q nanum-myeongjo.zip -d fonts/
-        wget -q https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-gothic.zip
-        unzip -q nanum-gothic.zip -d fonts/
+        wget -q --referer="https://www.hancom.com/" https://cdn.hancom.com/pds/docs/HancomFont.zip
+        unzip -q HancomFont.zip HCRBatang.ttf HCRBatang-Bold.ttf
+        mv HCRBatang*.ttf fonts/
+        wget -q https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip
+        unzip -q Pretendard-1.3.9.zip
+        mv public/static/alternative/*.ttf fonts/
+        wget -q https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf
+        mv *.otf fonts/
 
     - name: Compile PDF
       uses: xu-cheng/latex-action@v3
       with:
         root_file: formula.tex
-        latexmk_shell_escape: true
+        latexmk_use_lualatex: true
         extra_fonts: fonts/*
 
     - name: Setup Python
