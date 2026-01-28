@@ -3,6 +3,7 @@ name: Build PDF/HTML and Deploy to Pages
 on:
   push:
     branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -23,23 +24,16 @@ jobs:
     - name: Install fonts
       run: |
         mkdir -p fonts
-
         wget -q https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-myeongjo.zip
-        unzip -q nanum-myeongjo.zip
-        mv *.ttf fonts/
-
-        wget -q https://github.com/orioncactus/pretendard/releases/download/v1.3.9/Pretendard-1.3.9.zip
-        unzip -q Pretendard-1.3.9.zip
-        mv public/static/alternative/*.ttf fonts/
-
-        wget -q https://github.com/notofonts/noto-cjk/raw/refs/heads/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf
-        mv *.otf fonts/
+        unzip -q nanum-myeongjo.zip -d fonts/
+        wget -q https://hangeul.naver.com/hangeul_static/webfont/zips/nanum-gothic.zip
+        unzip -q nanum-gothic.zip -d fonts/
 
     - name: Compile PDF
       uses: xu-cheng/latex-action@v3
       with:
         root_file: formula.tex
-        latexmk_use_lualatex: true
+        latexmk_shell_escape: true
         extra_fonts: fonts/*
 
     - name: Setup Python
@@ -56,20 +50,37 @@ jobs:
       run: |
         python3 tex2html.py formula.tex formula.html
 
+    - name: Download web fonts
+      run: |
+        mkdir -p _site/fonts
+        curl -sL "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq.woff2" -o _site/fonts/NotoSansKR-Regular.woff2
+        curl -sL "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuozfbTq.woff2" -o _site/fonts/NotoSansKR-Bold.woff2
+
     - name: Prepare Pages
       run: |
-        mkdir -p _site
         cp formula.html _site/index.html
         cp formula.pdf _site/
         cp style.css _site/
         cp -r assets _site/ 2>/dev/null || true
 
-    - name: Upload artifact
+    - name: Upload pages artifact
       uses: actions/upload-pages-artifact@v3
       with:
         path: _site
 
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-output
+        path: |
+          formula.pdf
+          formula.html
+          style.css
+          assets/
+          _site/fonts/
+
   deploy:
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
