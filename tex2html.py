@@ -457,6 +457,7 @@ def create_pandoc_template():
   </nav>
   <button id="toc-toggle" aria-label="Toggle TOC">☰</button>
   <button id="theme-toggle" aria-label="Toggle Dark Mode">🌙</button>
+  <button id="share-selection">🔗 링크 복사</button>
   <main id="content">
 $body$
   </main>
@@ -501,6 +502,101 @@ $body$
         themeToggle.textContent = '☀️';
       }
     });
+
+    // Text Selection Share Link
+    const shareBtn = document.getElementById('share-selection');
+    let selectedText = '';
+
+    document.addEventListener('mouseup', (e) => {
+      setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+
+        if (text.length > 3 && text.length < 200) {
+          selectedText = text;
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+
+          shareBtn.style.display = 'block';
+          shareBtn.style.left = (rect.left + window.scrollX + rect.width / 2 - shareBtn.offsetWidth / 2) + 'px';
+          shareBtn.style.top = (rect.top + window.scrollY - 40) + 'px';
+          shareBtn.textContent = '🔗 링크 복사';
+          shareBtn.classList.remove('copied');
+        } else {
+          shareBtn.style.display = 'none';
+        }
+      }, 10);
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (e.target !== shareBtn) {
+        shareBtn.style.display = 'none';
+      }
+    });
+
+    shareBtn.addEventListener('click', async () => {
+      if (!selectedText) return;
+
+      // Create URL with text fragment
+      const baseUrl = window.location.href.split('#')[0];
+      const encodedText = encodeURIComponent(selectedText);
+      const url = baseUrl + '#:~:text=' + encodedText;
+
+      try {
+        await navigator.clipboard.writeText(url);
+        shareBtn.textContent = '✓ 복사됨';
+        shareBtn.classList.add('copied');
+        setTimeout(() => {
+          shareBtn.style.display = 'none';
+        }, 1500);
+      } catch (err) {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        shareBtn.textContent = '✓ 복사됨';
+        shareBtn.classList.add('copied');
+        setTimeout(() => {
+          shareBtn.style.display = 'none';
+        }, 1500);
+      }
+    });
+
+    // Highlight text from URL fragment on page load
+    (function() {
+      const hash = window.location.hash;
+      if (hash.includes(':~:text=')) {
+        const textToFind = decodeURIComponent(hash.split(':~:text=')[1]);
+        if (textToFind) {
+          const walker = document.createTreeWalker(
+            document.getElementById('content'),
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+          );
+
+          let node;
+          while (node = walker.nextNode()) {
+            const idx = node.textContent.indexOf(textToFind);
+            if (idx !== -1) {
+              const range = document.createRange();
+              range.setStart(node, idx);
+              range.setEnd(node, idx + textToFind.length);
+
+              const highlight = document.createElement('mark');
+              highlight.className = 'text-highlight';
+              range.surroundContents(highlight);
+
+              highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              break;
+            }
+          }
+        }
+      }
+    })();
   </script>
 </body>
 </html>
