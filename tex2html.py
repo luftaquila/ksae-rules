@@ -486,6 +486,39 @@ $body$
       });
     });
 
+    // TOC active section highlighting
+    const tocLinks = toc.querySelectorAll('a[href^="#"]');
+    const headings = [];
+
+    tocLinks.forEach(link => {
+      const id = link.getAttribute('href').slice(1);
+      const heading = document.getElementById(id);
+      if (heading) {
+        headings.push({ id, element: heading, link });
+      }
+    });
+
+    function updateActiveTocItem() {
+      const scrollPos = window.scrollY + 100;
+
+      let activeHeading = null;
+      for (const h of headings) {
+        if (h.element.offsetTop <= scrollPos) {
+          activeHeading = h;
+        } else {
+          break;
+        }
+      }
+
+      tocLinks.forEach(link => link.classList.remove('active'));
+      if (activeHeading) {
+        activeHeading.link.classList.add('active');
+      }
+    }
+
+    window.addEventListener('scroll', updateActiveTocItem);
+    updateActiveTocItem();
+
     // Dark Mode Toggle
     const themeToggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
@@ -516,6 +549,34 @@ $body$
     const shareBtn = document.getElementById('share-selection');
     let selectedText = '';
     let selectionTimeout = null;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    function positionShareButton(rect) {
+      const btnWidth = shareBtn.offsetWidth || 100;
+      const btnHeight = 36;
+      const padding = 10;
+
+      let left, top;
+
+      if (isMobile) {
+        // Mobile: below selection (system menu appears above)
+        left = rect.left + window.scrollX + rect.width / 2 - btnWidth / 2;
+        top = rect.bottom + window.scrollY + 10;
+      } else {
+        // Desktop: above selection
+        left = rect.left + window.scrollX + rect.width / 2 - btnWidth / 2;
+        top = rect.top + window.scrollY - 40;
+      }
+
+      // Clamp to viewport (keep button visible)
+      const maxLeft = window.scrollX + window.innerWidth - btnWidth - padding;
+      const minLeft = window.scrollX + padding;
+      left = Math.max(minLeft, Math.min(maxLeft, left));
+
+      shareBtn.style.transform = 'none';
+      shareBtn.style.left = left + 'px';
+      shareBtn.style.top = top + 'px';
+    }
 
     function handleSelection() {
       clearTimeout(selectionTimeout);
@@ -530,10 +591,9 @@ $body$
             const rect = range.getBoundingClientRect();
 
             shareBtn.style.display = 'block';
-            shareBtn.style.left = (rect.left + window.scrollX + rect.width / 2 - shareBtn.offsetWidth / 2) + 'px';
-            shareBtn.style.top = (rect.top + window.scrollY - 40) + 'px';
             shareBtn.textContent = '🔗 링크 복사';
             shareBtn.classList.remove('copied');
+            positionShareButton(rect);
           } catch (e) {
             shareBtn.style.display = 'none';
           }
@@ -545,14 +605,14 @@ $body$
 
     // Desktop: mouseup
     document.addEventListener('mouseup', handleSelection);
-    
+
     // Mobile: selectionchange (for touch selection)
     document.addEventListener('selectionchange', () => {
       clearTimeout(selectionTimeout);
       selectionTimeout = setTimeout(() => {
         const selection = window.getSelection();
         const text = selection.toString().trim();
-        
+
         if (text.length > 3 && text.length < 200) {
           selectedText = text;
           try {
@@ -560,13 +620,15 @@ $body$
             const rect = range.getBoundingClientRect();
 
             shareBtn.style.display = 'block';
-            shareBtn.style.left = (rect.left + window.scrollX + rect.width / 2 - shareBtn.offsetWidth / 2) + 'px';
-            shareBtn.style.top = (rect.top + window.scrollY - 40) + 'px';
             shareBtn.textContent = '🔗 링크 복사';
             shareBtn.classList.remove('copied');
+            positionShareButton(rect);
           } catch (e) {
             // Ignore errors
           }
+        } else if (text.length === 0) {
+          // Only hide when selection is completely cleared
+          shareBtn.style.display = 'none';
         }
       }, 200);
     });
@@ -576,72 +638,55 @@ $body$
         shareBtn.style.display = 'none';
       }
     });
-    
-    document.addEventListener('touchstart', (e) => {
-      if (e.target !== shareBtn) {
-        shareBtn.style.display = 'none';
-      }
-    });
+
+    // Mobile: don't hide on touchstart (allows scrolling with button visible)
+    // Button hides when selection is cleared via selectionchange
 
     shareBtn.addEventListener('click', async () => {
       if (!selectedText) return;
 
-      // Create URL with text fragment including prefix and suffix for precise matching
-      const baseUrl = window.location.href.split('#')[0];
-      
-      // Get the selection context (prefix and suffix) for precise matching
+      // Create URL with query parameter for text highlight
+      const baseUrl = window.location.href.split('?')[0].split('#')[0];
+
+      // Get context (prefix/suffix) for precise matching
       const selection = window.getSelection();
       let prefix = '';
       let suffix = '';
-      
+
       if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const container = range.commonAncestorContainer;
-        
-        // Get text content around the selection
-        const textNode = container.nodeType === Node.TEXT_NODE ? container : container;
-        const fullText = textNode.textContent || '';
-        
+
         if (container.nodeType === Node.TEXT_NODE) {
+          const fullText = container.textContent || '';
           const startOffset = range.startOffset;
           const endOffset = range.endOffset;
-          
-          // Extract prefix (up to 20 chars before selection)
-          const prefixStart = Math.max(0, startOffset - 20);
-          prefix = fullText.substring(prefixStart, startOffset).trim();
-          // Take last few words as prefix
-          const prefixWords = prefix.split(/\\s+/);
-          prefix = prefixWords.slice(-3).join(' ');
-          
-          // Extract suffix (up to 20 chars after selection)
-          const suffixEnd = Math.min(fullText.length, endOffset + 20);
-          suffix = fullText.substring(endOffset, suffixEnd).trim();
-          // Take first few words as suffix
-          const suffixWords = suffix.split(/\\s+/);
-          suffix = suffixWords.slice(0, 3).join(' ');
+
+          // Extract prefix (up to 30 chars before selection)
+          const prefixStart = Math.max(0, startOffset - 30);
+          prefix = fullText.substring(prefixStart, startOffset);
+
+          // Extract suffix (up to 30 chars after selection)
+          const suffixEnd = Math.min(fullText.length, endOffset + 30);
+          suffix = fullText.substring(endOffset, suffixEnd);
         }
       }
-      
-      // Build the text fragment with prefix and/or suffix
-      let textFragment = '';
-      const encodedText = encodeURIComponent(selectedText);
-      
-      if (prefix && suffix) {
-        textFragment = encodeURIComponent(prefix) + '-,' + encodedText + ',-' + encodeURIComponent(suffix);
-      } else if (prefix) {
-        textFragment = encodeURIComponent(prefix) + '-,' + encodedText;
-      } else if (suffix) {
-        textFragment = encodedText + ',-' + encodeURIComponent(suffix);
-      } else {
-        textFragment = encodedText;
-      }
-      
-      const url = baseUrl + '#:~:text=' + textFragment;
+
+      // Use start/end markers to reduce URL length while highlighting full text
+      const startMarker = selectedText.substring(0, 15);
+      const endMarker = selectedText.length > 15 ? selectedText.slice(-15) : '';
+
+      let url = baseUrl + '?a=' + encodeURIComponent(startMarker);
+      if (endMarker && endMarker !== startMarker) url += '&b=' + encodeURIComponent(endMarker);
+      if (prefix) url += '&p=' + encodeURIComponent(prefix.slice(-10));
+      if (suffix) url += '&s=' + encodeURIComponent(suffix.slice(0, 10));
 
       try {
         await navigator.clipboard.writeText(url);
         shareBtn.textContent = '✓ 복사됨';
         shareBtn.classList.add('copied');
+        selectedText = '';
+        window.getSelection().removeAllRanges();
         setTimeout(() => {
           shareBtn.style.display = 'none';
         }, 1500);
@@ -655,6 +700,8 @@ $body$
         document.body.removeChild(textarea);
         shareBtn.textContent = '✓ 복사됨';
         shareBtn.classList.add('copied');
+        selectedText = '';
+        window.getSelection().removeAllRanges();
         setTimeout(() => {
           shareBtn.style.display = 'none';
         }, 1500);
@@ -665,6 +712,7 @@ $body$
     const backBtn = document.getElementById('back-to-position');
     let previousScrollPosition = null;
     let backButtonTimeout = null;
+    let backButtonShownAt = null;
 
     // Track clicks on internal links
     document.addEventListener('click', (e) => {
@@ -672,7 +720,7 @@ $body$
       if (link) {
         // Save current scroll position before navigation
         previousScrollPosition = window.scrollY;
-        
+
         // Show back button after navigation
         setTimeout(() => {
           showBackButton();
@@ -684,7 +732,8 @@ $body$
       if (previousScrollPosition !== null) {
         backBtn.style.display = 'flex';
         backBtn.classList.add('visible');
-        
+        backButtonShownAt = Date.now();
+
         // Auto-hide after 20 seconds
         clearTimeout(backButtonTimeout);
         backButtonTimeout = setTimeout(() => {
@@ -714,124 +763,94 @@ $body$
     });
 
     // Hide back button when user scrolls manually near the original position
+    // Only hide if button has been shown for at least 3 seconds
     window.addEventListener('scroll', () => {
       if (previousScrollPosition !== null && backBtn.classList.contains('visible')) {
-        const currentPos = window.scrollY;
-        const diff = Math.abs(currentPos - previousScrollPosition);
-        // If user scrolled back close to original position, hide the button
-        if (diff < 100) {
-          previousScrollPosition = null;
-          hideBackButton();
+        const timeSinceShown = Date.now() - backButtonShownAt;
+        if (timeSinceShown >= 3000) {
+          const currentPos = window.scrollY;
+          const diff = Math.abs(currentPos - previousScrollPosition);
+          // If user scrolled back close to original position, hide the button
+          if (diff < 100) {
+            previousScrollPosition = null;
+            hideBackButton();
+          }
         }
       }
     });
 
-    // Highlight text from URL fragment on page load
+    // Highlight text from URL parameter on page load
     (function() {
-      const hash = window.location.hash;
-      if (hash.includes(':~:text=')) {
-        const fragment = decodeURIComponent(hash.split(':~:text=')[1]);
-        if (!fragment) return;
-        
-        // Parse the text fragment: prefix-,targetText,-suffix
-        let prefix = '';
-        let targetText = '';
-        let suffix = '';
-        
-        if (fragment.includes('-,') || fragment.includes(',-')) {
-          // Has prefix and/or suffix
-          const parts = fragment.split(',-');
-          const firstPart = parts[0];
-          suffix = parts[1] || '';
-          
-          if (firstPart.includes('-,')) {
-            const subParts = firstPart.split('-,');
-            prefix = subParts[0];
-            targetText = subParts[1];
-          } else {
-            targetText = firstPart;
+      const params = new URLSearchParams(window.location.search);
+      const startMarker = params.get('a');
+      if (!startMarker) return;
+
+      const endMarker = params.get('b') || startMarker;
+      const prefix = params.get('p') || '';
+      const suffix = params.get('s') || '';
+
+      // Clean URL after reading parameter
+      const cleanUrl = window.location.href.split('?')[0];
+      history.replaceState(null, '', cleanUrl);
+
+      const content = document.getElementById('content');
+      const walker = document.createTreeWalker(
+        content,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+
+      let node;
+      while (node = walker.nextNode()) {
+        const nodeText = node.textContent;
+        let startIdx = nodeText.indexOf(startMarker);
+
+        while (startIdx !== -1) {
+          // Check prefix
+          if (prefix) {
+            const beforeText = nodeText.substring(0, startIdx);
+            if (!beforeText.endsWith(prefix)) {
+              startIdx = nodeText.indexOf(startMarker, startIdx + 1);
+              continue;
+            }
           }
-        } else {
-          targetText = fragment;
-        }
-        
-        if (!targetText) return;
-        
-        const content = document.getElementById('content');
-        const walker = document.createTreeWalker(
-          content,
-          NodeFilter.SHOW_TEXT,
-          null,
-          false
-        );
 
-        let node;
-        let found = false;
-        while (node = walker.nextNode()) {
-          const nodeText = node.textContent;
-          let idx = nodeText.indexOf(targetText);
-          
-          while (idx !== -1 && !found) {
-            // If we have prefix/suffix, verify context
-            let matches = true;
-            
-            if (prefix) {
-              // Check if prefix exists before the target text
-              const beforeText = nodeText.substring(0, idx);
-              if (!beforeText.includes(prefix)) {
-                // Check in previous text nodes
-                let prevText = '';
-                let prevNode = node.previousSibling;
-                while (prevNode && prevText.length < 100) {
-                  if (prevNode.nodeType === Node.TEXT_NODE) {
-                    prevText = prevNode.textContent + prevText;
-                  }
-                  prevNode = prevNode.previousSibling;
-                }
-                if (!(beforeText + prevText).includes(prefix)) {
-                  matches = false;
-                }
-              }
-            }
-            
-            if (suffix && matches) {
-              // Check if suffix exists after the target text
-              const afterText = nodeText.substring(idx + targetText.length);
-              if (!afterText.includes(suffix)) {
-                // Check in next text nodes
-                let nextText = '';
-                let nextNode = node.nextSibling;
-                while (nextNode && nextText.length < 100) {
-                  if (nextNode.nodeType === Node.TEXT_NODE) {
-                    nextText += nextNode.textContent;
-                  }
-                  nextNode = nextNode.nextSibling;
-                }
-                if (!(afterText + nextText).includes(suffix)) {
-                  matches = false;
-                }
-              }
-            }
-            
-            if (matches) {
-              const range = document.createRange();
-              range.setStart(node, idx);
-              range.setEnd(node, idx + targetText.length);
+          // Find end marker after start marker
+          const searchFrom = startIdx + startMarker.length;
+          let endIdx = nodeText.indexOf(endMarker, searchFrom - endMarker.length);
+          if (endIdx < startIdx) endIdx = nodeText.indexOf(endMarker, startIdx);
 
-              const highlight = document.createElement('mark');
-              highlight.className = 'text-highlight';
-              range.surroundContents(highlight);
-
-              highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              found = true;
-              break;
-            }
-            
-            // Find next occurrence
-            idx = nodeText.indexOf(targetText, idx + 1);
+          // If end marker not found or same as start, use start marker end
+          if (endIdx === -1 || endMarker === startMarker) {
+            endIdx = startIdx;
           }
-          
-          if (found) break;
+          const highlightEnd = endIdx + endMarker.length;
+
+          // Check suffix
+          if (suffix) {
+            const afterText = nodeText.substring(highlightEnd);
+            if (!afterText.startsWith(suffix)) {
+              startIdx = nodeText.indexOf(startMarker, startIdx + 1);
+              continue;
+            }
+          }
+
+          // Highlight from start marker to end of end marker
+          const range = document.createRange();
+          range.setStart(node, startIdx);
+          range.setEnd(node, highlightEnd);
+
+          const highlight = document.createElement('mark');
+          highlight.className = 'text-highlight';
+          range.surroundContents(highlight);
+
+          // Scroll to highlighted text
+          const rect = highlight.getBoundingClientRect();
+          const scrollTop = window.scrollY + rect.top - window.innerHeight / 2 + rect.height / 2;
+          window.scrollTo({ top: scrollTop, left: 0, behavior: 'smooth' });
+
+          return;
         }
       }
     })();

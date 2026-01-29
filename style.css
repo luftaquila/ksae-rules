@@ -161,6 +161,15 @@ body {
   color: var(--text-color);
 }
 
+.toc-content a.active {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.toc-content a.toc-chapter.active {
+  color: var(--accent-color);
+}
+
 /* TOC Toggle Button */
 #toc-toggle {
   display: none;
@@ -211,10 +220,12 @@ body {
 
 /* Main Content */
 #content {
-  margin-left: var(--toc-width);
   max-width: 960px;
   padding: 40px 24px;
   overflow-x: hidden;
+  /* Center content in the space right of TOC */
+  margin-left: max(var(--toc-width), calc((100vw - 960px) / 2));
+  margin-right: auto;
 }
 
 /* 제목 스타일 */
@@ -600,22 +611,11 @@ pre {
   background-color: #fef08a;
   padding: 2px 0;
   border-radius: 2px;
-  animation: highlight-fade 3s ease-out forwards;
 }
 
 [data-theme="dark"] .text-highlight {
   background-color: #505050;
   color: #ffffff;
-}
-
-@keyframes highlight-fade {
-  0%, 70% { background-color: #fef08a; }
-  100% { background-color: transparent; }
-}
-
-[data-theme="dark"] @keyframes highlight-fade {
-  0%, 70% { background-color: #505050; }
-  100% { background-color: transparent; }
 }
 
 /* 반응형 - 태블릿 */
