@@ -4,3 +4,4 @@
 *.html
 *_preprocessed.tex
 .env
+.venv
