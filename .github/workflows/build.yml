@@ -51,8 +51,8 @@ jobs:
     - name: Download web fonts
       run: |
         mkdir -p _site/fonts
-        curl -sL "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq.woff2" -o _site/fonts/NotoSansKR-Regular.woff2
-        curl -sL "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuozfbTq.woff2" -o _site/fonts/NotoSansKR-Bold.woff2
+        curl -sL "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-400-normal.woff2" -o _site/fonts/NotoSansKR-Regular.woff2
+        curl -sL "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-700-normal.woff2" -o _site/fonts/NotoSansKR-Bold.woff2
 
     - name: Prepare Pages
       run: |
